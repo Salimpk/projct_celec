@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<!-- saved from url=(0032)http://127.0.0.1:5500/index.html -->
+<html lang="ar" dir="rtl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بطولة كرة القدم المطورة</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --line-color: #95a5a6;
+            --background-color: #ecf0f1;
+            --team-bg: #fff;
+            --bracket-spacing: 40px;
+            --match-height: 80px;
+            --connector-width: 3px;
+            --center-bar-color: #0077ee;
+            --center-bar-width:30px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            padding: 20px;
+            min-width: 1200px;
+        }
+
+        .tournament-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 60px 20px;
+            margin: 0 auto;
+            position: relative;
+            gap: 43px;
+        }
+
+        /* Center Bar Styles */
+        .center-bar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: var(--center-bar-width);
+            background-color: var(--center-bar-color);
+            z-index: 1;
+        }
+
+        .round-transition {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .round-label {
+            background-color: var(--center-bar-color);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .round {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 3;
+        }
+
+        .round-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-size: 1.2em;
+        }
+
+        .matches-container {
+            display: flex;
+            flex-direction: column;
+            gap: calc(var(--bracket-spacing) * 2);
+        }
+
+        .match {
+            position: relative;
+            width: 200px;
+        }
+
+        .match::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -40px;
+            width: 40px;
+            height: var(--connector-width);
+            background-color: var(--line-color);
+            transform: translateY(-50%);
+        }
+
+        .match::before {
+            content: '';
+            position: absolute;
+            top: calc(-1 * var(--bracket-spacing));
+            bottom: calc(-1 * var(--bracket-spacing));
+            right: -40px;
+            width: var(--connector-width);
+            background-color: var(--line-color);
+        }
+
+        .round:last-child .match::after,
+        .round:last-child .match::before {
+            display: none;
+        }
+
+        .team {
+            height: 40px;
+            background-color: var(--team-bg);
+            border: 2px solid var(--primary-color);
+            border-radius: 4px;
+            margin: 2px 0;
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .team:hover {
+            transform: translateX(-5px);
+            border-color: var(--secondary-color);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .team.winner {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .team.selected {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .team-seed {
+            font-weight: bold;
+            margin-left: 8px;
+            color: #7f8c8d;
+            min-width: 25px;
+        }
+
+        .team.selected .team-seed {
+            color: white;
+        }
+
+        .team-name {
+            flex: 1;
+            text-align: center;
+        }
+
+        .team-score {
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+            padding: 2px 8px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        /* Round-specific spacing */
+        .round:nth-child(2) .matches-container {
+            padding-top: var(--bracket-spacing);
+        }
+
+        .round:nth-child(3) .matches-container {
+            padding-top: calc(var(--bracket-spacing) * 3);
+        }
+
+        .round:nth-child(4) .matches-container {
+            padding-top: calc(var(--bracket-spacing) * 7);
+        }
+
+        /* Finals special styling */
+        .round:last-child .match {
+            border-right: 4px solid var(--primary-color);
+            padding-right: 20px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .team {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .team.winner::after {
+            content: '🏆';
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="tournament-container" id="bracket"><div class="round"><div class="round-title">دور الـ 16</div><div class="matches-container"><div class="match"><div class="team selected" data-seed="1" data-name="الهلال"><span class="team-seed">#1</span><span class="team-name">الهلال</span><span class="team-score">3</span></div><div class="team" data-seed="2" data-name="النصر"><span class="team-seed">#2</span><span class="team-name">النصر</span><span class="team-score">3</span></div></div><div class="match"><div class="team" data-seed="3" data-name="الاتحاد"><span class="team-seed">#3</span><span class="team-name">الاتحاد</span><span class="team-score">0</span></div><div class="team" data-seed="4" data-name="الأهلي"><span class="team-seed">#4</span><span class="team-name">الأهلي</span><span class="team-score">0</span></div></div><div class="match"><div class="team selected" data-seed="5" data-name="الشباب"><span class="team-seed">#5</span><span class="team-name">الشباب</span><span class="team-score">3</span></div><div class="team" data-seed="6" data-name="الفيصلي"><span class="team-seed">#6</span><span class="team-name">الفيصلي</span><span class="team-score">0</span></div></div><div class="match"><div class="team" data-seed="7" data-name="التعاون"><span class="team-seed">#7</span><span class="team-name">التعاون</span><span class="team-score">0</span></div><div class="team" data-seed="8" data-name="الفتح"><span class="team-seed">#8</span><span class="team-name">الفتح</span><span class="team-score">0</span></div></div><div class="match"><div class="team" data-seed="9" data-name="الرائد"><span class="team-seed">#9</span><span class="team-name">الرائد</span><span class="team-score">0</span></div><div class="team" data-seed="10" data-name="الاتفاق"><span class="team-seed">#10</span><span class="team-name">الاتفاق</span><span class="team-score">0</span></div></div><div class="match"><div class="team" data-seed="11" data-name="ضمك"><span class="team-seed">#11</span><span class="team-name">ضمك</span><span class="team-score">0</span></div><div class="team" data-seed="12" data-name="الخليج"><span class="team-seed">#12</span><span class="team-name">الخليج</span><span class="team-score">0</span></div></div><div class="match"><div class="team" data-seed="13" data-name="الطائي"><span class="team-seed">#13</span><span class="team-name">الطائي</span><span class="team-score">0</span></div><div class="team" data-seed="14" data-name="العدالة"><span class="team-seed">#14</span><span class="team-name">العدالة</span><span class="team-score">0</span></div></div><div class="match"><div class="team" data-seed="15" data-name="الحزم"><span class="team-seed">#15</span><span class="team-name">الحزم</span><span class="team-score">0</span></div><div class="team" data-seed="16" data-name="الفيحاء"><span class="team-seed">#16</span><span class="team-name">الفيحاء</span><span class="team-score">0</span></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div></div></div><div class="round"><div class="round-title">دور الـ 8</div><div class="matches-container"><div class="match"><div class="team" data-seed="1" data-name="الهلال"><span class="team-seed">#1</span><span class="team-name">الهلال</span><span class="team-score">0</span></div><div class="team"></div></div><div class="match"><div class="team" data-seed="5" data-name="الشباب"><span class="team-seed">#5</span><span class="team-name">الشباب</span><span class="team-score">0</span></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div></div></div><div class="round"><div class="round-title">دور الـ 4</div><div class="matches-container"><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div></div></div><div class="round"><div class="round-title">النهائي</div><div class="matches-container"><div class="match"><div class="team"></div><div class="team"></div></div><div class="match"><div class="team"></div><div class="team"></div></div></div></div><div class="round"><div class="round-title"></div><div class="matches-container"><div class="match"><div class="team"></div><div class="team"></div></div></div></div></div>
+    
+    <script>
+        class TournamentBracket {
+            constructor() {
+                this.teams = [
+                    { name: "الهلال", seed: 1 },
+                    { name: "النصر", seed: 2 },
+                    { name: "الاتحاد", seed: 3 },
+                    { name: "الأهلي", seed: 4 },
+                    { name: "الشباب", seed: 5 },
+                    { name: "الفيصلي", seed: 6 },
+                    { name: "التعاون", seed: 7 },
+                    { name: "الفتح", seed: 8 },
+                    { name: "الرائد", seed: 9 },
+                    { name: "الاتفاق", seed: 10 },
+                    { name: "ضمك", seed: 11 },
+                    { name: "الخليج", seed: 12 },
+                    { name: "الطائي", seed: 13 },
+                    { name: "العدالة", seed: 14 },
+                    { name: "الحزم", seed: 15 },
+                    { name: "الفيحاء", seed: 16 }
+                ];
+                this.roundNames = ['دور الـ 16', 'دور الـ 8', 'دور الـ 4', 'النهائي'];
+                this.init();
+            }
+
+            init() {
+                this.createBracket();
+                this.addEventListeners();
+                this.addCenterBars();
+            }
+
+              
+
+            createBracket() {
+                const container = document.getElementById('bracket');
+                container.innerHTML = '';
+
+                const rounds = Math.log2(this.teams.length);
+                
+                for (let round = 0; round < rounds + 1; round++) {
+                    const roundDiv = document.createElement('div');
+                    roundDiv.className = 'round';
+
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'round-title';
+                    titleDiv.textContent = this.roundNames[round];
+                    roundDiv.appendChild(titleDiv);
+
+                    const matchesContainer = document.createElement('div');
+                    matchesContainer.className = 'matches-container';
+
+                    const matchesCount = Math.pow(2, rounds - round);
+                    
+                    for (let match = 0; match < matchesCount; match++) {
+                        const matchDiv = this.createMatch(round, match);
+                        matchesContainer.appendChild(matchDiv);
+                    }
+
+                    roundDiv.appendChild(matchesContainer);
+                    container.appendChild(roundDiv);
+                }
+            }
+
+            createMatch(round, matchIndex) {
+                const matchDiv = document.createElement('div');
+                matchDiv.className = 'match';
+
+                if (round === 0) {
+                    const team1Index = matchIndex * 2;
+                    const team2Index = matchIndex * 2 + 1;
+                    
+                    matchDiv.appendChild(this.createTeamDiv(this.teams[team1Index]));
+                    matchDiv.appendChild(this.createTeamDiv(this.teams[team2Index]));
+                } else {
+                    matchDiv.appendChild(this.createTeamDiv());
+                    matchDiv.appendChild(this.createTeamDiv());
+                }
+
+                return matchDiv;
+            }
+
+            createTeamDiv(team = null) {
+                const teamDiv = document.createElement('div');
+                teamDiv.className = 'team';
+
+                if (team) {
+                    const seedSpan = document.createElement('span');
+                    seedSpan.className = 'team-seed';
+                    seedSpan.textContent = `#${team.seed}`;
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'team-name';
+                    nameSpan.textContent = team.name;
+
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = 'team-score';
+                    scoreSpan.textContent = '0';
+
+                    teamDiv.appendChild(seedSpan);
+                    teamDiv.appendChild(nameSpan);
+                    teamDiv.appendChild(scoreSpan);
+                    
+                    teamDiv.dataset.seed = team.seed;
+                    teamDiv.dataset.name = team.name;
+                }
+
+                return teamDiv;
+            }
+
+            addEventListeners() {
+                document.getElementById('bracket').addEventListener('click', (e) => {
+                    const teamDiv = e.target.closest('.team');
+                    if (teamDiv && teamDiv.dataset.name) {
+                        this.handleTeamClick(teamDiv);
+                    }
+                });
+            }
+
+            handleTeamClick(teamDiv) {
+                const match = teamDiv.closest('.match');
+                const round = match.closest('.round');
+                const nextRound = round.nextElementSibling;
+
+                if (!nextRound) {
+                    if (!teamDiv.classList.contains('winner')) {
+                        teamDiv.classList.add('winner');
+                        setTimeout(() => {
+                            alert(`🏆 مبروك! ${teamDiv.dataset.name} بطل البطولة!`);
+                        }, 100);
+                    }
+                    return;
+                }
+
+                const matchIndex = Array.from(match.parentNode.children).indexOf(match);
+                const nextMatchIndex = Math.floor(matchIndex / 2);
+                const isTopTeam = matchIndex % 2 === 0;
+
+                const nextMatch = nextRound.querySelector('.matches-container').children[nextMatchIndex];
+                const targetSlot = nextMatch.children[isTopTeam ? 0 : 1];
+                
+
+                // Update UI
+                match.querySelectorAll('.team').forEach(team => team.classList.remove('selected'));
+                teamDiv.classList.add('selected');
+
+                // Update score
+                const currentScore = parseInt(teamDiv.querySelector('.team-score').textContent);
+                const newScore = currentScore + Math.floor(Math.random() * 3) + 1;
+                teamDiv.querySelector('.team-score').textContent = newScore;
+
+                // Move team to next round
+                const newTeam = this.createTeamDiv({
+                    name: teamDiv.dataset.name,
+                    seed: teamDiv.dataset.seed
+                });
+                targetSlot.replaceWith(newTeam);
+            }
+        }
+
+        // Initialize the bracket
+        new TournamentBracket();
+    </script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+
+
+</body></html>
